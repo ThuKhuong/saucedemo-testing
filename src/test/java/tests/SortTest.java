@@ -1,99 +1,95 @@
 package tests;
 
 import base.BaseTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import data.LoginData;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import pages.InventoryPage;
+import pages.LoginPage;
 
-import java.time.Duration;
 import java.util.List;
 
 public class SortTest extends BaseTest {
+    private LoginPage loginPage;
 
-    private void login() {
-        driver.findElement(By.id("user-name")).sendKeys("standard_user");
-        driver.findElement(By.id("password")).sendKeys("secret_sauce");
-        driver.findElement(By.id("login-button")).click();
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlContains("inventory"));
+    @BeforeMethod
+    public void setUpPage() {
+        loginPage = new LoginPage(driver, wait);
     }
+
     @Test
-    void TC_SORT_01_sortProductsByNameAToZ() {
-        login();
+    public void TC_SORT_01_sortProductsByNameAToZ() {
 
-        Select sortDropdown = new Select(
-                driver.findElement(By.cssSelector("[data-test='product-sort-container']"))
-        );
-        sortDropdown.selectByVisibleText("Name (A to Z)");
 
-        String firstItemName = driver.findElements(
-                By.className("inventory_item_name")
-        ).get(0).getText();
-        Assertions.assertEquals(
-                "Sauce Labs Backpack",
-                firstItemName,
-                "First product should be Sauce Labs Backpack when sorted A to Z"
-        );
-    }
-    @Test
-    void TC_SORT_02_sortProductsByNameZToA() {
-        login();
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
 
-        Select sortDropdown = new Select(
-                driver.findElement(By.cssSelector("[data-test='product-sort-container']"))
-        );
-        sortDropdown.selectByVisibleText("Name (Z to A)");
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
 
-        String firstItemName = driver.findElements(
-                By.className("inventory_item_name")
-        ).get(0).getText();
-        Assertions.assertEquals(
-                "Test.allTheThings() T-Shirt (Red)",
-                firstItemName,
-                "First product should be Test.allTheThings() T-Shirt (Red) when sorted Z to A"
+        inventoryPage.sortByNameAToZ();
+
+        String firstItem = inventoryPage.getFirstProductName();
+
+        Assert.assertEquals(
+            firstItem,
+            "Sauce Labs Backpack",
+                "First product should be Backpack when sorted A to Z"
         );
     }
+
     @Test
-    void TC_SORT_03_sortProductsByPriceLowToHigh() {
-        login();
+    public void TC_SORT_02_sortProductsByNameZToA() {
 
-        Select sortDropdown = new Select(
-                driver.findElement(By.cssSelector("[data-test='product-sort-container']"))
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+
+        inventoryPage.sortByNameZToA();
+
+        String firstItem = inventoryPage.getFirstProductName();
+
+        Assert.assertEquals(
+            firstItem,
+            "Test.allTheThings() T-Shirt (Red)",
+                "First product should be Test.allTheThings() when sorted Z to A"
         );
-        sortDropdown.selectByVisibleText("Price (low to high)");
+    }
 
-        List<Double> prices = driver.findElements(
-                        By.className("inventory_item_price")
-                ).stream()
-                .map(e -> Double.parseDouble(e.getText().replace("$", "")))
-                .toList();
-        Assertions.assertTrue(
+    @Test
+    public void TC_SORT_03_sortProductsByPriceLowToHigh() {
+
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+
+        inventoryPage.sortByPriceLowToHigh();
+
+        List<Double> prices = inventoryPage.getAllProductPrices();
+
+        Assert.assertTrue(
                 prices.get(0) <= prices.get(prices.size() - 1),
-                "Products should be sorted by price from low to high"
+                "Products should be sorted low → high"
         );
     }
+
     @Test
-    void TC_SORT_04_sortProductsByPriceHighToLow() {
-        login();
+    public void TC_SORT_04_sortProductsByPriceHighToLow() {
 
-        Select sortDropdown = new Select(
-                driver.findElement(By.cssSelector("[data-test='product-sort-container']"))
-        );
-        sortDropdown.selectByVisibleText("Price (high to low)");
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
 
-        List<Double> prices = driver.findElements(
-                        By.className("inventory_item_price")
-                ).stream()
-                .map(e -> Double.parseDouble(e.getText().replace("$", "")))
-                .toList();
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
 
-        Assertions.assertTrue(
+        inventoryPage.sortByPriceHighToLow();
+
+        List<Double> prices = inventoryPage.getAllProductPrices();
+
+        Assert.assertTrue(
                 prices.get(0) >= prices.get(prices.size() - 1),
-                "Products should be sorted by price from high to low"
+                "Products should be sorted high → low"
         );
     }
 }

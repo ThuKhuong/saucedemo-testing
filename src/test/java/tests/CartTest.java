@@ -1,120 +1,124 @@
 package tests;
 
 import base.BaseTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
+import data.LoginData;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+import pages.CartPage;
+import pages.InventoryPage;
+import pages.LoginPage;
 
 public class CartTest extends BaseTest {
 
     @Test
-    void TC_CART_01_addOneProductToCart() {
-
-        login("standard_user", "secret_sauce");
-
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
-
-        Assertions.assertEquals(
-                "1",
-                driver.findElement(By.className("shopping_cart_badge")).getText(),
+    public void TC_CART_01_addOneProductToCart() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        inventoryPage.addBackpackToCart();
+        Assert.assertEquals(
+            inventoryPage.getCartBadgeText(),
+            "1",
                 "Cart badge should be 1"
         );
     }
 
     @Test
-    void TC_CART_02_addTwoProductToCart() {
+    public void TC_CART_02_addTwoProductToCart() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        inventoryPage.addBackpackToCart();
+        inventoryPage.addBikeLightToCart();
 
-        login("standard_user", "secret_sauce");
-
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
-        driver.findElement(By.id("add-to-cart-sauce-labs-bike-light")).click();
-
-        Assertions.assertEquals(
-                "2",
-                driver.findElement(By.className("shopping_cart_badge")).getText(),
+        Assert.assertEquals(
+            inventoryPage.getCartBadgeText(),
+            "2",
                 "Cart badge should be 2"
         );
     }
-
     @Test
-    void TC_CART_03_removeOneProductFromCart() {
+        public void TC_CART_03_removeOneProductFromCart() {
 
-        login("standard_user", "secret_sauce");
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        inventoryPage.addBackpackToCart();
+        inventoryPage.addBikeLightToCart();
+        inventoryPage.removeBikeLight();
 
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
-        driver.findElement(By.id("add-to-cart-sauce-labs-bike-light")).click();
-        driver.findElement(By.id("remove-sauce-labs-bike-light")).click();
-
-        Assertions.assertEquals(
-                "1",
-                driver.findElement(By.className("shopping_cart_badge")).getText(),
+        Assert.assertEquals(
+            inventoryPage.getCartBadgeText(),
+            "1",
                 "Cart badge should display 1"
         );
     }
 
     @Test
-    void TC_CART_04_verifyProductNameInCart() {
+    public void TC_CART_04_verifyProductNameInCart() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        inventoryPage.addBackpackToCart();
+        inventoryPage.openCart();
 
-        login("standard_user", "secret_sauce");
+        String productName = cartPage.getFirstProductName();
 
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
-        openCart();
-
-        String productName = driver.findElement(
-                By.className("inventory_item_name")
-        ).getText();
-
-        Assertions.assertEquals(
-                "Sauce Labs Backpack",
-                productName,
+        Assert.assertEquals(
+            productName,
+            "Sauce Labs Backpack",
                 "Product name in cart should be correct"
         );
     }
 
     @Test
-    void TC_CART_05_continueShopping() {
+    public void TC_CART_05_continueShopping() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
 
-        login("standard_user", "secret_sauce");
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
 
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
-        openCart();
+        inventoryPage.addBackpackToCart();
+        inventoryPage.openCart();
+        cartPage.clickContinueShopping();
 
-        driver.findElement(By.id("continue-shopping")).click();
-
-        Assertions.assertTrue(
+        Assert.assertTrue(
                 driver.getCurrentUrl().contains("inventory"),
                 "Should navigate back to inventory page"
         );
     }
 
     @Test
-    void TC_CART_06_removeItemInCart() {
+    public void TC_CART_06_removeItemInCart() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
 
-        login("standard_user", "secret_sauce");
-
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
-        openCart();
-
-        driver.findElement(By.id("remove-sauce-labs-backpack")).click();
-
-        Assertions.assertEquals(
-                0,
-                getCartBadgeCount(),
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        inventoryPage.addBackpackToCart();
+        inventoryPage.openCart();
+        cartPage.removeBackpack();
+        Assert.assertEquals(
+            getCartBadgeCount(),
+            0,
                 "Cart badge should disappear after removing item"
         );
     }
 
     @Test
-    void TC_CART_07_removeItemInInventory() {
+    public void TC_CART_07_removeItemInInventory() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
 
-        login("standard_user", "secret_sauce");
+        inventoryPage.addBackpackToCart();
+        inventoryPage.removeBackpack();
 
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
-        driver.findElement(By.id("remove-sauce-labs-backpack")).click();
-
-        Assertions.assertEquals(
-                0,
-                getCartBadgeCount(),
+        Assert.assertEquals(
+            getCartBadgeCount(),
+            0,
                 "Cart badge should disappear after removing item"
         );
     }

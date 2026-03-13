@@ -1,141 +1,124 @@
 package tests;
 
 import base.BaseTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
+import data.LoginData;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import pages.LoginPage;
 
 public class LoginTest extends BaseTest {
 
-    private void clearAndType(By locator, String text) {
-        WebElement el = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-        el.clear();
-        el.sendKeys(text);
-    }
+    private LoginPage loginPage;
 
-    private void clickLogin() {
-        wait.until(ExpectedConditions.elementToBeClickable(By.id("login-button"))).click();
+    @BeforeMethod
+    public void setUpPage() {
+        loginPage = new LoginPage(driver, wait);
     }
-
-    private String getErrorText() {
-        return wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.cssSelector("[data-test='error']"))
-        ).getText();
+    @Test
+    public void TC_LOGIN_01_loginWithValidAccount() {
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        wait.until(ExpectedConditions.urlContains("inventory"));
+        Assert.assertTrue(driver.getCurrentUrl().contains("inventory"),
+                "Login fail");
     }
 
     @Test
-    void TC_LOGIN_01_loginWithValidAccount() {
-        clearAndType(By.id("user-name"), "standard_user");
-        clearAndType(By.id("password"), "secret_sauce");
-        clickLogin();
-
-        wait.until(ExpectedConditions.urlContains("inventory.html"));
-        Assertions.assertTrue(driver.getCurrentUrl().contains("inventory.html"), "Login fail");
-    }
-
-    @Test
-    void TC_LOGIN_02_loginWithInvalidPassword() {
-        clearAndType(By.id("user-name"), "standard_user");
-        clearAndType(By.id("password"), "secret_sauce1");
-        clickLogin();
-
-        String errorText = getErrorText();
-        Assertions.assertTrue(errorText.contains("Username and password do not match"),
+    public void TC_LOGIN_02_loginWithInvalidPassword() {
+        loginPage.login(LoginData.VALID_USER, LoginData.INVALID_PASS);
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(errorText.contains("Username and password do not match"),
                 "Expected error message was not displayed. Actual: " + errorText);
-
-        // đảm bảo vẫn ở login (không vào inventory)
-        Assertions.assertFalse(driver.getCurrentUrl().contains("inventory.html"),
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
                 "User should stay on login page");
     }
 
     @Test
-    void TC_LOGIN_03_loginWithInvalidUsername() {
-        clearAndType(By.id("user-name"), "standard_user1");
-        clearAndType(By.id("password"), "secret_sauce");
-        clickLogin();
-
-        String errorText = getErrorText();
-        Assertions.assertTrue(errorText.contains("Username and password do not match"),
+    public void TC_LOGIN_03_loginWithInvalidUsername() {
+        loginPage.login(LoginData.INVALID_USER, LoginData.VALID_PASS);
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(errorText.contains("Username and password do not match"),
                 "Expected error message was not displayed. Actual: " + errorText);
-
-        Assertions.assertFalse(driver.getCurrentUrl().contains("inventory.html"),
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
                 "User should stay on login page");
     }
 
     @Test
-    void TC_LOGIN_04_loginWithEmptyUsername() {
-
-        clearAndType(By.id("password"), "secret_sauce");
-        clickLogin();
-        String errorText = getErrorText();
-        Assertions.assertTrue(errorText.contains("Username is required"),
+    public void TC_LOGIN_04_loginWithEmptyUsername() {
+        loginPage.login("", LoginData.VALID_PASS);
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(errorText.contains("Username is required"),
                 "Expected 'Username is required'. Actual: " + errorText);
-
-        Assertions.assertFalse(driver.getCurrentUrl().contains("inventory.html"),
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
                 "User should stay on login page");
     }
 
     @Test
-    void TC_LOGIN_05_loginWithEmptyPassword() {
-        clearAndType(By.id("user-name"), "standard_user");
-        clickLogin();
-        String errorText = getErrorText();
-        Assertions.assertTrue(errorText.contains("Password is required"),
+    public void TC_LOGIN_05_loginWithEmptyPassword() {
+        loginPage.login(LoginData.VALID_USER, "");
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(errorText.contains("Password is required"),
                 "Expected 'Password is required'. Actual: " + errorText);
-
-        Assertions.assertFalse(driver.getCurrentUrl().contains("inventory.html"),
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
                 "User should stay on login page");
     }
 
     @Test
-    void TC_LOGIN_06_loginWithEmptyUsernamePassword() {
-        clickLogin();
-
-        String errorText = getErrorText();
-        Assertions.assertTrue(errorText.contains("Username is required"),
+    public void TC_LOGIN_06_loginWithEmptyUsernamePassword() {
+        loginPage.login("", "");
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(errorText.contains("Username is required"),
                 "Expected 'Username is required'. Actual: " + errorText);
-
-        Assertions.assertFalse(driver.getCurrentUrl().contains("inventory.html"),
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
                 "User should stay on login page");
     }
-    @Test
-    void TC_LOGIN_07_loginWithInvalidUsernamePassword() {
-        clearAndType(By.id("user-name"), "standard_user1");
-        clearAndType(By.id("password"), "secret_sauce1");
-        clickLogin();
 
-        String errorText = getErrorText();
-        Assertions.assertTrue(errorText.contains("Username and password do not match"),
+    @Test
+    public void TC_LOGIN_07_loginWithInvalidUsernamePassword() {
+        loginPage.login(LoginData.INVALID_USER, LoginData.INVALID_PASS);
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(errorText.contains("Username and password do not match"),
                 "Expected error message was not displayed. Actual: " + errorText);
-        
-        Assertions.assertFalse(driver.getCurrentUrl().contains("inventory.html"),
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
                 "User should stay on login page");
     }
-    @Test
-    void TC_LOGIN_08_lockedOutUser() {
-        clearAndType(By.id("user-name"), "locked_out_user");
-        clearAndType(By.id("password"), "secret_sauce");
-        clickLogin();
 
-        String errorText = getErrorText();
-        Assertions.assertTrue(errorText.contains("locked out"),
+    @Test
+    public void TC_LOGIN_08_lockedOutUser() {
+        loginPage.login(LoginData.LOCKED_USER, LoginData.VALID_PASS);
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(errorText.contains("locked out"),
                 "Expected locked out message. Actual: " + errorText);
-
-        Assertions.assertFalse(driver.getCurrentUrl().contains("inventory.html"),
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
                 "User should stay on login page");
     }
 
     @Test
-    void TC_LOGIN_09_performanceGlitchUser() {
-        clearAndType(By.id("user-name"), "performance_glitch_user");
-        clearAndType(By.id("password"), "secret_sauce");
-        clickLogin();
-
-        // user này có thể load chậm, wait trong BaseTest là 10s ok, nếu vẫn fail tăng lên 15s
-        wait.until(ExpectedConditions.urlContains("inventory.html"));
-        Assertions.assertTrue(driver.getCurrentUrl().contains("inventory.html"),
+    public void TC_LOGIN_09_performanceGlitchUser() {
+        loginPage.login("performance_glitch_user", LoginData.VALID_PASS);
+        wait.until(ExpectedConditions.urlContains("inventory"));
+        Assert.assertTrue(driver.getCurrentUrl().contains("inventory"),
                 "Login FAILED not redirected to Inventory page");
+    }
+
+    @Test
+    public void TC_LOGIN_10_usernameWithLeadingTrailingSpaces() {
+        loginPage.login("  standard_user", LoginData.VALID_PASS);
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(
+                errorText.contains("Username and password do not match"),
+                "Login should fail when username has spaces"
+        );
+    }
+
+    @Test
+    public void TC_LOGIN_11_usernameWithSpecialCharacters() {
+        loginPage.login("@@@standard_user", LoginData.VALID_PASS);
+        String errorText = loginPage.getErrorText();
+        Assert.assertTrue(
+                errorText.contains("Username and password do not match"),
+                "Login should fail with special characters"
+        );
     }
 }

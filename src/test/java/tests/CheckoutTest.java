@@ -1,133 +1,269 @@
 package tests;
 
 import base.BaseTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
+import data.CheckoutData;
+import data.LoginData;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+import pages.CartPage;
+import pages.CheckoutPage;
+import pages.InventoryPage;
+import pages.LoginPage;
 
 public class CheckoutTest extends BaseTest {
+    private void openCheckoutWithBackpack(LoginPage loginPage,
+                                          InventoryPage inventoryPage,
+                                          CartPage cartPage) {
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        inventoryPage.addBackpackToCart();
+        inventoryPage.openCart();
+        cartPage.clickCheckout();
+    }
 
-    private void addBackpackToCartAndOpenCheckout() {
-        driver.findElement(By.id("add-to-cart-sauce-labs-backpack")).click();
+    @Test
+        public void TC_CHECKOUT_01_checkoutSuccessfully() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+
+        checkoutPage.fillCheckoutInfo(
+                CheckoutData.FIRST_NAME,
+                CheckoutData.LAST_NAME,
+                CheckoutData.ZIP_CODE
+        );
+        checkoutPage.clickContinue();
+        checkoutPage.clickFinish();
+        Assert.assertEquals(
+                checkoutPage.getCompleteHeader(),
+                "Thank you for your order!",
+                "Checkout complete header is incorrect"
+        );
+
+        Assert.assertTrue(
+                driver.getCurrentUrl().contains("checkout-complete"),
+                "Should navigate to checkout complete page"
+        );
+    }
+
+    @Test
+    public void TC_CHECKOUT_02_missingFirstName() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+        checkoutPage.fillCheckoutInfo(
+                "",
+                CheckoutData.LAST_NAME,
+                CheckoutData.ZIP_CODE
+        );
+        checkoutPage.clickContinue();
+        String error = checkoutPage.getErrorText();
+
+                Assert.assertTrue(
+                error.contains("First Name is required"),
+                "Expected 'First Name is required'. Actual: " + error
+        );
+    }
+
+    @Test
+        public void TC_CHECKOUT_03_missingLastName() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+        checkoutPage.fillCheckoutInfo(
+                CheckoutData.FIRST_NAME,
+                "",
+                CheckoutData.ZIP_CODE
+        );
+        checkoutPage.clickContinue();
+
+        String error = checkoutPage.getErrorText();
+
+                Assert.assertTrue(
+                error.contains("Last Name is required"),
+                "Expected 'Last Name is required'. Actual: " + error
+        );
+    }
+    @Test
+        public void TC_CHECKOUT_04_missingPostalCode() {
+
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+        checkoutPage.fillCheckoutInfo(
+                CheckoutData.FIRST_NAME,
+                CheckoutData.LAST_NAME,
+                ""
+        );
+        checkoutPage.clickContinue();
+        String error = checkoutPage.getErrorText();
+                Assert.assertTrue(
+                error.contains("Postal Code is required"),
+                "Expected 'Postal Code is required'. Actual: " + error
+        );
+    }
+
+    @Test
+        public void TC_CHECKOUT_05_cancelCheckoutStep1() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+        checkoutPage.clickCancel();
+                Assert.assertTrue(
+                driver.getCurrentUrl().contains("cart"),
+                "Should navigate back to cart page"
+        );
+    }
+
+    @Test
+        public void TC_CHECKOUT_06_cancelCheckoutStep2() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+
+        checkoutPage.fillCheckoutInfo(
+                CheckoutData.FIRST_NAME,
+                CheckoutData.LAST_NAME,
+                CheckoutData.ZIP_CODE
+        );
+        checkoutPage.clickContinue();
+        checkoutPage.clickCancel();
+
+                Assert.assertTrue(
+                driver.getCurrentUrl().contains("inventory"),
+                "Should navigate back to inventory page"
+        );
+    }
+
+    @Test
+        public void TC_CHECKOUT_07_emptyCartStillCheckout() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
         openCart();
-        driver.findElement(By.id("checkout")).click();
-    }
-
-    @Test
-    void TC_CHECKOUT_01_checkoutSuccessfully() {
-
-        login("standard_user", "secret_sauce");
-        addBackpackToCartAndOpenCheckout();
-
-        driver.findElement(By.id("first-name")).sendKeys("Lê");
-        driver.findElement(By.id("last-name")).sendKeys("Khương");
-        driver.findElement(By.id("postal-code")).sendKeys("70000");
-        driver.findElement(By.id("continue")).click();
-        driver.findElement(By.id("finish")).click();
-
-        String result = driver.findElement(By.className("complete-header")).getText();
-
-        Assertions.assertEquals("Thank you for your order!", result);
-        Assertions.assertTrue(driver.getCurrentUrl().contains("checkout-complete"));
-    }
-
-    @Test
-    void TC_CHECKOUT_02_missingFirstName() {
-
-        login("standard_user", "secret_sauce");
-        addBackpackToCartAndOpenCheckout();
-
-        driver.findElement(By.id("last-name")).sendKeys("Khương");
-        driver.findElement(By.id("postal-code")).sendKeys("70000");
-        driver.findElement(By.id("continue")).click();
-
-        String error = driver.findElement(By.cssSelector("h3[data-test='error']")).getText();
-
-        Assertions.assertTrue(error.contains("First Name is required"));
-    }
-
-    @Test
-    void TC_CHECKOUT_03_missingLastName() {
-
-        login("standard_user", "secret_sauce");
-        addBackpackToCartAndOpenCheckout();
-
-        driver.findElement(By.id("first-name")).sendKeys("Lê");
-        driver.findElement(By.id("postal-code")).sendKeys("70000");
-        driver.findElement(By.id("continue")).click();
-
-        String error = driver.findElement(By.cssSelector("h3[data-test='error']")).getText();
-
-        Assertions.assertTrue(error.contains("Last Name is required"));
-    }
-
-    @Test
-    void TC_CHECKOUT_04_missingPostalCode() {
-
-        login("standard_user", "secret_sauce");
-        addBackpackToCartAndOpenCheckout();
-
-        driver.findElement(By.id("first-name")).sendKeys("Lê");
-        driver.findElement(By.id("last-name")).sendKeys("Khương");
-        driver.findElement(By.id("continue")).click();
-
-        String error = driver.findElement(By.cssSelector("h3[data-test='error']")).getText();
-
-        Assertions.assertTrue(error.contains("Postal Code is required"));
-    }
-
-    @Test
-    void TC_CHECKOUT_05_cancelCheckoutStep1() {
-
-        login("standard_user", "secret_sauce");
-        addBackpackToCartAndOpenCheckout();
-
-        driver.findElement(By.id("cancel")).click();
-
-        Assertions.assertTrue(driver.getCurrentUrl().contains("cart"));
-    }
-
-    @Test
-    void TC_CHECKOUT_06_cancelCheckoutStep2() {
-
-        login("standard_user", "secret_sauce");
-        addBackpackToCartAndOpenCheckout();
-
-        driver.findElement(By.id("first-name")).sendKeys("Lê");
-        driver.findElement(By.id("last-name")).sendKeys("Khương");
-        driver.findElement(By.id("postal-code")).sendKeys("70000");
-        driver.findElement(By.id("continue")).click();
-
-        driver.findElement(By.id("cancel")).click();
-
-        Assertions.assertTrue(driver.getCurrentUrl().contains("inventory"));
-    }
-
-    @Test
-    void TC_CHECKOUT_07_emptyCartStillCheckout() {
-
-        login("standard_user", "secret_sauce");
-
-        openCart();
-
-        Assertions.assertEquals(
+        Assert.assertEquals(
+                driver.findElements(org.openqa.selenium.By.className("cart_item")).size(),
                 0,
-                driver.findElements(By.className("cart_item")).size(),
                 "Precondition failed: cart is not empty"
         );
-
-        driver.findElement(By.id("checkout")).click();
-
-        driver.findElement(By.id("first-name")).sendKeys("Lê");
-        driver.findElement(By.id("last-name")).sendKeys("Khương");
-        driver.findElement(By.id("postal-code")).sendKeys("70000");
-        driver.findElement(By.id("continue")).click();
-
-        Assertions.assertTrue(
-                driver.getCurrentUrl().contains("checkout-step-two"),
-                "Should be on Overview page"
+        cartPage.clickCheckout();
+        checkoutPage.fillCheckoutInfo(
+                CheckoutData.FIRST_NAME,
+                CheckoutData.LAST_NAME,
+                CheckoutData.ZIP_CODE
         );
+        checkoutPage.clickContinue();
+                Assert.assertTrue(
+                driver.getCurrentUrl().contains("checkout-step-two"),
+                "Should be on overview page"
+        );
+                Assert.fail("BUG: Checkout succeeds with empty cart");
+    }
+    @Test
+        public void TC_CHECKOUT_08_backHomeAfterFinish() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
 
-        Assertions.fail("BUG: Checkout succeeds with empty cart");
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+
+        checkoutPage.fillCheckoutInfo(
+                CheckoutData.FIRST_NAME,
+                CheckoutData.LAST_NAME,
+                CheckoutData.ZIP_CODE
+        );
+        checkoutPage.clickContinue();
+        checkoutPage.clickFinish();
+        checkoutPage.clickBackHome();
+
+        Assert.assertTrue(
+                driver.getCurrentUrl().contains("inventory"),
+                "Should navigate back to inventory page"
+        );
+        Assert.assertEquals(
+                getCartBadgeCount(),
+                0,
+                "Cart badge should be reset after finishing checkout"
+        );
+    }
+
+    @Test
+    public void TC_CHECKOUT_09_verifyItemTotalTaxAndTotal() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
+        inventoryPage.addBackpackToCart();
+        inventoryPage.addBikeLightToCart();
+        inventoryPage.openCart();
+        cartPage.clickCheckout();
+
+        checkoutPage.fillCheckoutInfo(
+                CheckoutData.FIRST_NAME,
+                CheckoutData.LAST_NAME,
+                CheckoutData.ZIP_CODE
+        );
+        checkoutPage.clickContinue();
+
+        double expectedItemTotal = 29.99 + 9.99;
+        double actualItemTotal = checkoutPage.getItemTotal();
+        double actualTax = checkoutPage.getTax();
+        double actualTotal = checkoutPage.getTotal();
+        Assert.assertEquals(
+                actualItemTotal,
+                expectedItemTotal,
+                0.01,
+                "Item total is incorrect"
+        );
+        Assert.assertEquals(
+                actualTax,
+                actualItemTotal * 0.08,
+                0.01,
+                "Tax is incorrect"
+        );
+        Assert.assertEquals(
+                actualTotal,
+                actualItemTotal + actualTax,
+                0.01,
+                "Total is incorrect"
+        );
+    }
+    @Test
+    public void TC_CHECKOUT_10_firstNameOnlySpaces() {
+        LoginPage loginPage = new LoginPage(driver, wait);
+        InventoryPage inventoryPage = new InventoryPage(driver);
+        CartPage cartPage = new CartPage(driver);
+        CheckoutPage checkoutPage = new CheckoutPage(driver);
+
+        openCheckoutWithBackpack(loginPage, inventoryPage, cartPage);
+
+        checkoutPage.fillCheckoutInfo(
+                "   ",
+                CheckoutData.LAST_NAME,
+                CheckoutData.ZIP_CODE
+        );
+        checkoutPage.clickContinue();
+        Assert.fail("BUG: System allows checkout when First Name contains only spaces");
     }
 }
