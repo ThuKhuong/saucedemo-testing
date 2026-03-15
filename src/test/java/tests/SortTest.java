@@ -37,9 +37,7 @@ public class SortTest extends BaseTest {
     @Test
     public void TC_SORT_02_sortProductsByNameZToA() {
         loginPage.login(LoginData.VALID_USER, LoginData.VALID_PASS);
-
         inventoryPage.sortByNameZToA();
-
         String firstItem = inventoryPage.getFirstProductName();
 
         Assert.assertEquals(

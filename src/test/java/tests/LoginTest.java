@@ -96,7 +96,7 @@ public class LoginTest extends BaseTest {
 
     @Test
     public void TC_LOGIN_09_performanceGlitchUser() {
-        loginPage.login("performance_glitch_user", LoginData.VALID_PASS);
+        loginPage.login(LoginData.PERFORMANCE_USER, LoginData.VALID_PASS);
         wait.until(ExpectedConditions.urlContains("inventory"));
         Assert.assertTrue(driver.getCurrentUrl().contains("inventory"),
                 "Login FAILED not redirected to Inventory page");
@@ -110,8 +110,9 @@ public class LoginTest extends BaseTest {
                 errorText.contains("Username and password do not match"),
                 "Login should fail when username has spaces"
         );
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
+                "User should stay on login page");
     }
-
     @Test
     public void TC_LOGIN_11_usernameWithSpecialCharacters() {
         loginPage.login("@@@standard_user", LoginData.VALID_PASS);
@@ -120,5 +121,7 @@ public class LoginTest extends BaseTest {
                 errorText.contains("Username and password do not match"),
                 "Login should fail with special characters"
         );
+        Assert.assertFalse(driver.getCurrentUrl().contains("inventory"),
+                "User should stay on login page");
     }
 }

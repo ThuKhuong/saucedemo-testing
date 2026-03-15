@@ -14,7 +14,7 @@ public class LoginPage {
     }
     private By username = By.id("user-name");
     private By password = By.id("password");
-    private By loginbutton = By.id("login-button");
+    private By loginButton = By.id("login-button");
     private By error = By.cssSelector("[data-test='error']");
 
     public void enterUsername(String user) {
@@ -26,7 +26,7 @@ public class LoginPage {
         driver.findElement(password).sendKeys(pass);
     }
     public void clickLogin () {
-        driver.findElement(loginbutton).click();
+        driver.findElement(loginButton).click();
     }
     public void login(String user, String pass) {
         enterUsername(user);

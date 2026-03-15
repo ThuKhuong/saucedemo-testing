@@ -31,12 +31,10 @@ public class CheckoutPage {
         driver.findElement(firstName).clear();
         driver.findElement(firstName).sendKeys(first);
     }
-
     public void enterLastName(String last) {
         driver.findElement(lastName).clear();
         driver.findElement(lastName).sendKeys(last);
     }
-
     public void enterPostalCode(String zip) {
         driver.findElement(postalCode).clear();
         driver.findElement(postalCode).sendKeys(zip);
@@ -47,14 +45,12 @@ public class CheckoutPage {
         enterLastName(last);
         enterPostalCode(zip);
     }
-
     public void clickContinue() {
         driver.findElement(continueBtn).click();
     }
     public void clickFinish() {
         driver.findElement(finishBtn).click();
     }
-
     public void clickCancel() {
         driver.findElement(cancelBtn).click();
     }
@@ -70,17 +66,14 @@ public class CheckoutPage {
     public String getCompleteHeader() {
         return driver.findElement(completeHeader).getText();
     }
-
     public double getItemTotal() {
         String text = driver.findElement(itemTotalLabel).getText(); // Item total: $29.99
         return Double.parseDouble(text.replace("Item total: $", "").trim());
     }
-
     public double getTax() {
         String text = driver.findElement(taxLabel).getText(); // Tax: $2.40
         return Double.parseDouble(text.replace("Tax: $", "").trim());
     }
-
     public double getTotal() {
         String text = driver.findElement(totalLabel).getText(); // Total: $32.39
         return Double.parseDouble(text.replace("Total: $", "").trim());

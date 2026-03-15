@@ -37,15 +37,12 @@ public class InventoryPage {
     public void addBikeLightToCart() {
         driver.findElement(bikeLightAddBtn).click();
     }
-
     public void removeBackpack() {
         driver.findElement(backpackRemoveBtn).click();
     }
-
     public void removeBikeLight() {
         driver.findElement(bikeLightRemoveBtn).click();
     }
-
     public void openCart() {
         driver.findElement(cartLink).click();
     }
@@ -76,7 +73,6 @@ public class InventoryPage {
     public String getFirstProductName() {
         return driver.findElements(productNames).get(0).getText();
     }
-
     public List<Double> getAllProductPrices() {
         return driver.findElements(productPrices)
                 .stream()
@@ -86,11 +82,9 @@ public class InventoryPage {
     public void openMenu() {
         driver.findElement(menuBtn).click();
     }
-
     public void clickLogout() {
         driver.findElement(logoutLink).click();
     }
-
     public void logout() {
         openMenu();
         clickLogout();

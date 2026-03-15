@@ -107,7 +107,6 @@ public class CartTest extends BaseTest {
 
         inventoryPage.addBackpackToCart();
         inventoryPage.removeBackpack();
-
         Assert.assertEquals(
             getCartBadgeCount(),
             0,

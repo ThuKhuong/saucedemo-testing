@@ -231,4 +231,18 @@ public class CheckoutTest extends BaseTest {
         checkoutPage.clickContinue();
         Assert.fail("BUG: System allows checkout when First Name contains only spaces");
     }
+    @Test
+    public void TC_CHECKOUT_11_allFieldsOnlySpaces() {
+        openCheckoutWithBackpack();
+
+        checkoutPage.fillCheckoutInfo("   ", "   ", "   ");
+        checkoutPage.clickContinue();
+
+        boolean movedToNextPage = driver.getCurrentUrl().contains("checkout-step-two");
+
+        Assert.assertFalse(
+                movedToNextPage,
+                "BUG: System allows checkout when all fields contain only spaces"
+        );
+    }
 }
